@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wi-Fi負荷試験スタート</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+    <h1>Wi-Fi負荷試験を開始します</h1>
+    <p>このボタンを押すと、自動的に複数のダウンロードが開始されます。</p>
+    <p>ブラウザの動作が重くなる場合がありますが、画面を閉じずにしばらくお待ちください。</p>
+
+    <button onclick="startDownloadTabs()">
+        試験開始！ (ダウンロードを3回開始します)
+    </button>
+
+    <script>
+        // 設定パラメータ
+        const TARGET_URL = "https://soichi01hagiwara-cell.github.io/nw-test/testfile.zip"; 
+        const NUM_DOWNLOADS = 3; // ★ 1台のChromebookで開くタブの数
+
+        function startDownloadTabs() {
+            document.querySelector('h1').textContent = "試験実行中...";
+            document.querySelector('button').disabled = true;
+
+            for (let i = 0; i < NUM_DOWNLOADS; i++) {
+                // 新しいタブを開いてダウンロードURLにアクセス
+                window.open(TARGET_URL, '_blank'); 
+            }
+            
+            alert(NUM_DOWNLOADS + "個のダウンロードを開始しました。画面を閉じずに待機してください。");
+        }
+    </script>
+
+</body>
+</html>
