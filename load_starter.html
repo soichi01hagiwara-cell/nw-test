@@ -1,53 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Wi-Fi負荷試験スタート</title>
+    <title>ネットワーク負荷試験スタート</title>
     <meta charset="UTF-8">
 </head>
 <body>
 
-    <h1>Wi-Fi負荷試験を開始します</h1>
-    <p>このボタンを押すと、自動的に複数のダウンロードが開始されます。</p>
-    <p>ブラウザの動作が重くなる場合がありますが、画面を閉じずにしばらくお待ちください。</p>
+    <h1>校内ネットワーク負荷試験を開始します</h1>
+    <p>このボタンを押すごとにファイルが**1つ**ダウンロードされ、ネットワークに負荷をかけます。次のダウンロードまで**30秒**待つ必要があります。</p>
+    
+    <h2 id="downloadStatus">現在のダウンロード回数: 0 回</h2>
 
-    <button id="startButton" onclick="startLoadTest()">
-        試験開始！ (ダウンロードを3回開始します)
+    <button id="downloadButton" onclick="downloadSingleFile()">
+        負荷開始 (1ファイル)
     </button>
     
-    <div id="status"></div>
+    <p id="countdownMessage" style="color: red; font-weight: bold;"></p>
+
     <div id="iframeContainer"></div>
 
     <script>
         // 設定パラメータ
         const TARGET_URL = "https://s01prefshizuoka.github.io/nw-test/testfile.zip";
-        const NUM_DOWNLOADS = 3; // ★ 1台のChromebookで同時に開始するダウンロード数
+        const DISABLE_DURATION_MS = 30000; // 30秒間無効化 (30000ms)
         // -----------------------------------------------------------------------
 
-        function startLoadTest() {
-            const statusDiv = document.getElementById('status');
-            const container = document.getElementById('iframeContainer');
-            const startButton = document.getElementById('startButton');
+        let downloadCount = 0;
+        let countdownInterval;
 
-            // ボタンとステータスの更新
-            startButton.disabled = true;
-            statusDiv.innerHTML = "<h2>試験実行中... ダウンロードが開始するまでお待ちください。</h2>";
-            
-            // iFrame生成で複数のダウンロードを強制的に開始
-            for (let i = 0; i < NUM_DOWNLOADS; i++) {
-                const iframe = document.createElement('iframe');
-                // iframeを非表示にして、画面には表示しない
-                iframe.style.display = 'none'; 
-                // ダウンロードURLをiframeのソースに設定
-                iframe.src = TARGET_URL; 
-                // ボディに追加してダウンロードをトリガー
-                container.appendChild(iframe);
-            }
-            
-            statusDiv.innerHTML += `<p>✅ ${NUM_DOWNLOADS} 個のダウンロードが開始されました。</p>`;
-            alert(`${NUM_DOWNLOADS} 個のダウンロードを開始しました。画面を閉じずに待機してください。`);
+        function updateStatus() {
+            document.getElementById('downloadStatus').textContent = `現在のダウンロード回数: ${downloadCount} 回`;
         }
+        
+        function startCountdown(duration) {
+            let seconds = duration / 1000;
+            const messageElement = document.getElementById('countdownMessage');
+
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            countdownInterval = setInterval(() => {
+                if (seconds > 0) {
+                    messageElement.textContent = `次の負荷開始まで ${seconds} 秒待機してください...`;
+                    seconds--;
+                } else {
+                    clearInterval(countdownInterval);
+                    messageElement.textContent = '次の負荷を開始可能です！';
+                }
+            }, 1000);
+        }
+
+
+        function downloadSingleFile() {
+            const button = document.getElementById('downloadButton');
+            
+            // 1. ボタンを無効化
+            button.disabled = true;
+            button.textContent = '負荷処理中...';
+
+            downloadCount++;
+            updateStatus(); // 回数表示を更新
+
+            const container = document.getElementById('iframeContainer');
+            
+            // 2. ダウンロード処理のトリガー
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none'; 
+            
+            // キャッシュを防ぐため、URLにランダムなクエリパラメータを追加
+            iframe.src = TARGET_URL + '?r=' + Math.random();
+            
+            container.appendChild(iframe);
+            
+            // カウントダウンを開始
+            startCountdown(DISABLE_DURATION_MS);
+            
+            // 3. 30秒後にボタンを再有効化する
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = '負荷開始 (1ファイル)';
+                document.getElementById('countdownMessage').textContent = '次の負荷を開始可能です！';
+            }, DISABLE_DURATION_MS);
+        }
+        
+        window.onload = updateStatus;
     </script>
 
 </body>
 </html>
-
