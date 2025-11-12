@@ -184,6 +184,17 @@
             downloadCount++;
             updateStatus(); // 回数表示を更新
 
+            // 📌 GA4にカスタムイベントを送信し、ダウンロード回数を記録
+            // イベント名: 'network_load_start'
+            // パラメータ: 'download_attempt' (何回目のダウンロード試行か)
+            if (typeof gtag === 'function') {
+                gtag('event', 'network_load_start', {
+                    'event_category': 'load_test',
+                    'event_label': 'download_button_click',
+                    'download_attempt': downloadCount
+                });
+            }
+
             const container = document.getElementById('iframeContainer');
             
             // 2. ダウンロード処理のトリガー
